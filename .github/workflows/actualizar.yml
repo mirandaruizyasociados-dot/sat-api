@@ -2,9 +2,8 @@ name: Actualizar Listados SAT
 
 on:
   schedule:
-    # Se ejecuta automáticamente el primer día de cada mes
     - cron: '0 2 1 * *'
-  workflow_dispatch: # Te permite darle clic al botón "Run workflow" manualmente en cualquier momento
+  workflow_dispatch:
 
 jobs:
   actualizar:
@@ -26,7 +25,7 @@ jobs:
           python - << 'EOF'
           import os
           import requests
-          from bs4ool import BeautifulSoup
+          from bs4 import BeautifulSoup
           import pandas as pd
 
           url_minisitio = "https://www.sat.gob.mx/minisitio/DatosAbiertos/contribuyentes_publicados.html"
@@ -38,7 +37,6 @@ jobs:
               
               soup = BeautifulSoup(response.text, 'html.parser')
               
-              # Buscar el enlace del "Listado completo" del Art 69-B
               link_encontrado = None
               for a in soup.find_all('a', href=True):
                   if 'listado' in a.text.lower() and 'completo' in a.text.lower():
@@ -53,7 +51,6 @@ jobs:
                   file_resp = requests.get(link_encontrado, headers=headers)
                   
                   os.makedirs("data", exist_ok=True)
-                  # Guardar temporalmente el archivo descargado (suele venir en formato comprimido o Excel/CSV)
                   with open("data/art69b.csv", "wb") as f:
                       f.write(file_resp.content)
                   print("Archivo 69-B descargado y actualizado con éxito.")
