@@ -1,0 +1,74 @@
+name: Actualizar Listados SAT
+
+on:
+  schedule:
+    # Se ejecuta automáticamente el primer día de cada mes
+    - cron: '0 2 1 * *'
+  workflow_dispatch: # Te permite darle clic al botón "Run workflow" manualmente en cualquier momento
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias de descarga
+        run: pip install requests beautifulsoup4 pandas
+
+      - name: Descargar listado actualizado del SAT
+        run: |
+          python - << 'EOF'
+          import os
+          import requests
+          from bs4ool import BeautifulSoup
+          import pandas as pd
+
+          url_minisitio = "https://www.sat.gob.mx/minisitio/DatosAbiertos/contribuyentes_publicados.html"
+          headers = {"User-Agent": "Mozilla/5.0"}
+
+          try:
+              response = requests.get(url_minisitio, headers=headers, timeout=30)
+              response.raise_for_status()
+              
+              soup = BeautifulSoup(response.text, 'html.parser')
+              
+              # Buscar el enlace del "Listado completo" del Art 69-B
+              link_encontrado = None
+              for a in soup.find_all('a', href=True):
+                  if 'listado' in a.text.lower() and 'completo' in a.text.lower():
+                      link_encontrado = a['href']
+                      break
+              
+              if link_encontrado:
+                  if not link_encontrado.startswith('http'):
+                      link_encontrado = "https://www.sat.gob.mx" + link_encontrado
+                  
+                  print(f"Descargando desde: {link_encontrado}")
+                  file_resp = requests.get(link_encontrado, headers=headers)
+                  
+                  os.makedirs("data", exist_ok=True)
+                  # Guardar temporalmente el archivo descargado (suele venir en formato comprimido o Excel/CSV)
+                  with open("data/art69b.csv", "wb") as f:
+                      f.write(file_resp.content)
+                  print("Archivo 69-B descargado y actualizado con éxito.")
+              else:
+                  print("No se encontró el enlace automático, conservando archivo actual.")
+          except Exception as e:
+              print(f"Error en la descarga automática: {e}")
+          EOF
+
+      - name: Subir cambios a GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "Bot SAT"
+          git config --global user.email "bot@users.noreply.github.com"
+          git add data/
+          git commit -m "Actualización automática de listados desde el SAT" || exit 0
+          git push
