@@ -2,11 +2,12 @@ name: Actualizar Listados SAT
 
 on:
   schedule:
-    - cron: '0 2 1 * *'
+    # Se ejecuta todos los lunes a las 2:00 AM (hora de México) / 8:00 AM UTC
+    - cron: '0 8 * * 1'
   workflow_dispatch:
 
 permissions:
-  contents: write  # <-- ESTO ES LO QUE FALTA PARA PERMITIR EL PUSH
+  contents: write
 
 jobs:
   actualizar:
