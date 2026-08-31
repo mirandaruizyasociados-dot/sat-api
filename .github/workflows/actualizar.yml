@@ -5,6 +5,9 @@ on:
     - cron: '0 2 1 * *'
   workflow_dispatch:
 
+permissions:
+  contents: write  # <-- ESTO ES LO QUE FALTA PARA PERMITIR EL PUSH
+
 jobs:
   actualizar:
     runs-on: ubuntu-latest
