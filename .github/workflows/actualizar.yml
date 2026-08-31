@@ -2,7 +2,6 @@ name: Actualizar Listados SAT
 
 on:
   schedule:
-    # Se ejecuta todos los lunes a las 2:00 AM (hora de México) / 8:00 AM UTC
     - cron: '0 8 * * 1'
   workflow_dispatch:
 
@@ -14,12 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clonar repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configurar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Instalar dependencias de descarga
         run: pip install requests beautifulsoup4 pandas
